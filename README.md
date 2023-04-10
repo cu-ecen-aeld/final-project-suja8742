@@ -1,4 +1,4 @@
-## ECEN 5713 AESD Final Project
+# ECEN 5713 AESD Final Project
 
 # Project Overview
 Project Overview is found at this [link](https://github.com/sachininja/final-project-SachinMathad/wiki/Project-Overview). 
