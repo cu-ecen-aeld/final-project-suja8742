@@ -12,4 +12,7 @@ The Buildroot Repository is hosted at this [link](https://github.com/sachininja/
 # Application Code
 The application code is hosted at this [link](https://github.com/cu-ecen-aeld/final-project-suja8742).
 
+#BluezUtils Credit
+The open source Bluez utils source code and version has been used in accordance with the AESD course Wiki and previous students who worked with this version (5.55) - Amey Dashaputre and Venkat Tata.
+
 
