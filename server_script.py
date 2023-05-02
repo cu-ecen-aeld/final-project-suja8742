@@ -101,11 +101,11 @@ while True:
    #Detecting that a command has been sent by the client. 
     while " link LE\n" in output1:
         output2 = bluetoothctl.stdout.readline().decode()
-        print(output1)
-        print(output2)
+       # print(output1)
+       # print(output2)
         if len(output2) > 0:
             lastchar = output2[len(output2) - 65]
-            print("The required character is: %s" % lastchar)
+           # print("The required character is: %s" % lastchar)
         else:
             print("Wrong string")
         #File Mutex to access shared resource.     
