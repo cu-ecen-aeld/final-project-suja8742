@@ -1,4 +1,15 @@
+# Author: Sudarshan Jagannathan
+# Name: server_script.py
+# Description: This script automates the process of setting up a bluetooth server using the bluetoothctl utility of Bluez v.5.63. it sets up custom services and characteristics 
+# that are exposted to the client device, and receives data from a connected client. This data is written into a file to be accessed by the I2S module script to play music. 
+# Date Modified: 05/01/2023
+# References: 1. https://www.guru99.com/reading-and-writing-files-in-python.html
+#2.https://realpython.com/python-strings/#:~:text=String%20indexing%20in%20Python%20is,of%20the%20string%20minus%20one.&text=For%20any%20non%2Dempty%20string,both%20return%20the%20last%20character.
+# 3. ChatGPT
+# 4. https://ubuntu.com/core/docs/bluez/how-to
+
 import subprocess
+import fcntl
 import time
 
 import re
@@ -29,10 +40,6 @@ while "Changing power on succeeded" not in output:
 bluetoothctl.stdin.write(b'menu advertise\n')
 bluetoothctl.stdin.flush()
 
-while "export" not in output:
-    output += bluetoothctl.stdout.readline().decode()
-    print(output)
-
 # Set the manufacturer ID
 bluetoothctl.stdin.write(b'manufacturer 0xffff 0x12 0x34\n')
 time.sleep(1)
@@ -49,25 +56,13 @@ print("Success name")
 bluetoothctl.stdin.write(b'back\n')
 bluetoothctl.stdin.flush()
 time.sleep(1)
-#while "export" not in output:
-    #output += bluetoothctl.stdout.readline().decode()
-    #print(output)
+
 bluetoothctl.stdin.write(b'list\n')
 bluetoothctl.stdin.flush()
-
-while "raspberrypi [default]" not in output:
-	
-    output += bluetoothctl.stdout.readline().decode()
-    print(output)
     
 #Turn on Advertising
 bluetoothctl.stdin.write(b'advertise on\n')
 bluetoothctl.stdin.flush()
-
-while "Discoverable: on" not in output:
-	
-    output += bluetoothctl.stdout.readline().decode()
-    print(output)
 
 #Menu gatt
 bluetoothctl.stdin.write(b'menu gatt\n')
@@ -80,12 +75,7 @@ print("Success")
 bluetoothctl.stdin.write(b'register-service e2d36f99-8909-4136-9a49-d825508b297b\n')
 bluetoothctl.stdin.flush()
 time.sleep(1)
-
-#while "yes/no" not in output:
-	
-    #output += bluetoothctl.stdout.readline().decode()
-    #print(output)
-    
+# Say yes to set as primary service    
 bluetoothctl.stdin.write(b'yes\n')
 bluetoothctl.stdin.flush()
 time.sleep(1)
@@ -94,36 +84,22 @@ time.sleep(1)
 bluetoothctl.stdin.write(b'register-characteristic 0x1234 write\n')
 bluetoothctl.stdin.flush()
 time.sleep(1)
-
+#Write an initial value for the characteristic
 bluetoothctl.stdin.write(b'67\n')
 bluetoothctl.stdin.flush()
 time.sleep(1)
-
-
-#while "Enter value:\n" not in output:
-	
-    #output += bluetoothctl.stdout.readline().decode()
-    #print(output)
 
 bluetoothctl.stdin.write(b'register-application\n')
 bluetoothctl.stdin.flush()
 time.sleep(1)
 
 print("end config")
-i = 0
 
-with open("scripttest.txt", 'w') as fileObj:
-    fileObj.write(f"ready : {i}" )
-# with open("scripttest.txt", 'w') as fileObj:
-#     fileObj.write("ready")
 while True:
-    # time.sleep(5)
-   
+# Poll for a command sent by the client. Parse this command to decode the character of concern and write it into a file.    
     output1 = bluetoothctl.stdout.readline().decode()
-    # print(output1)
-    # print(output1)
+   #Detecting that a command has been sent by the client. 
     while " link LE\n" in output1:
-        # subprocess.run(['echo', str(i), '>', 'test.txt'], shell=True)
         output2 = bluetoothctl.stdout.readline().decode()
         print(output1)
         print(output2)
@@ -132,18 +108,9 @@ while True:
             print("The required character is: %s" % lastchar)
         else:
             print("Wrong string")
-        
-        # match = re.search(r'(?<=WriteValue: \b[0-9A-Fa-f]{2}\b offset 0 link LE\n\s+)\w+', output)
-        #match = re.search(r'^\s*05\s*', output2)
-
-        #if match:
-         #   value = match.group(0).strip()
-          #  print(value)
-        #else:
-         #   print("No match found")
-        # if match:
-        # value = match.group(0)
-        with open("scripttest.txt", 'w') as fileObj:
+        #File Mutex to access shared resource.     
+        with open("audio_test.txt", 'w') as fileObj:
+            fcntl.flock(fileObj, fcntl.LOCK_EX)
             fileObj.write(lastchar)
-        # else:
+            fcntl.flock(fileObj, fcntl.LOCK_UN)
         break
